@@ -1,0 +1,140 @@
+<script>
+  let allGames = [];
+
+  const mainGrid     = document.getElementById('mainGrid');
+  const loadingState = document.getElementById('loadingState');
+  const errorState   = document.getElementById('errorState');
+  const noResults    = document.getElementById('noResults');
+  const statCount    = document.getElementById('statCount');
+  const statStatus   = document.getElementById('statStatus');
+  const searchInput  = document.getElementById('searchInput');
+  const retryBtn     = document.getElementById('retryBtn');
+  const modal        = document.getElementById('modal');
+  const modalClose   = document.getElementById('modalClose');
+  const modalContent = document.getElementById('modalContent');
+
+  function scoreColor(r) {
+    return r >= 4 ? '#39ff14' : r >= 3 ? '#f5e642' : '#ff2d78';
+  }
+
+  function createCard(game, delay) {
+    const score = game.rating ? game.rating.toFixed(1) : '?';
+    const color = scoreColor(game.rating);
+    const card  = document.createElement('article');
+    card.className = 'game-card';
+    card.dataset.id = game.id;
+    card.style.animationDelay = delay + 'ms';
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        <img src="${game.image}" alt="${game.title}" loading="lazy" />
+        <div class="card-overlay"><span class="overlay-text">▶ VER MÁS</span></div>
+        <div class="card-score" style="color:${color};border-color:${color};box-shadow:0 0 8px ${color}44">${score}</div>
+      </div>
+      <div class="card-body">
+        <p class="card-year">${game.genre}</p>
+        <h3 class="card-title">${game.title}</h3>
+        <p class="card-genres">${game.short_description || ''}</p>
+      </div>
+      <span class="corner tl"></span><span class="corner tr"></span>
+      <span class="corner bl"></span><span class="corner br"></span>
+    `;
+    card.addEventListener('click', () => openModal(game));
+    return card;
+  }
+
+  function renderGames(games) {
+    mainGrid.innerHTML = '';
+    noResults.classList.toggle('hidden', games.length > 0);
+    games.forEach((g, i) => mainGrid.appendChild(createCard(g, i * 50)));
+    statCount.textContent = games.length;
+  }
+
+  async function loadGames() {
+    loadingState.classList.remove('hidden');
+    errorState.classList.add('hidden');
+    mainGrid.classList.add('hidden');
+
+    try {
+      // FreeToGame API — sin key, sin registro
+      const res  = await fetch('https://www.freetogame.com/api/games');
+      if (!res.ok) throw new Error('status ' + res.status);
+      const data = await res.json();
+
+      allGames = data.slice(0, 24).map(g => ({
+        id:                g.id,
+        title:             g.title,
+        rating:            4.0,
+        image:             g.thumbnail,
+        genre:             g.genre,
+        short_description: g.short_description,
+        platform:          g.platform,
+        publisher:         g.publisher,
+        developer:         g.developer,
+        release_date:      g.release_date,
+        game_url:          g.game_url,
+      }));
+
+      loadingState.classList.add('hidden');
+      mainGrid.classList.remove('hidden');
+      renderGames(allGames);
+      statStatus.textContent      = 'ONLINE';
+      statStatus.style.color      = '#39ff14';
+      statStatus.style.textShadow = '0 0 8px #39ff14';
+
+    } catch (err) {
+      console.error('fetch error:', err);
+      loadingState.classList.add('hidden');
+      errorState.classList.remove('hidden');
+      statStatus.textContent = 'ERROR';
+      statStatus.style.color = '#ff2d78';
+    }
+  }
+
+  retryBtn.addEventListener('click', loadGames);
+  loadGames();
+
+  searchInput.addEventListener('input', () => {
+    const term = searchInput.value.trim().toLowerCase();
+    const filtered = term
+      ? allGames.filter(g =>
+          g.title.toLowerCase().includes(term) ||
+          g.genre.toLowerCase().includes(term)
+        )
+      : allGames;
+    renderGames(filtered);
+  });
+
+  function openModal(game) {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    const color = scoreColor(game.rating);
+    modalContent.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+        <img src="${game.image}" alt="${game.title}" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:4px;border:1px solid var(--border)" />
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <h2 style="font-size:1.4rem;font-weight:700;color:var(--neon-cyan);text-shadow:0 0 12px rgba(0,245,255,.5);line-height:1.2">${game.title}</h2>
+          <div style="font-family:var(--font-pixel);font-size:.8rem;color:${color};text-shadow:0 0 10px ${color}">FREE TO PLAY</div>
+          <div style="font-size:.82rem;color:var(--muted);line-height:2">
+            <b style="color:var(--text)">Género:</b> ${game.genre}<br>
+            <b style="color:var(--text)">Plataforma:</b> ${game.platform}<br>
+            <b style="color:var(--text)">Developer:</b> ${game.developer}<br>
+            <b style="color:var(--text)">Publisher:</b> ${game.publisher}<br>
+            <b style="color:var(--text)">Lanzamiento:</b> ${game.release_date}
+          </div>
+          <a href="${game.game_url}" target="_blank" style="font-family:var(--font-pixel);font-size:.45rem;color:#000;background:var(--neon-cyan);padding:8px 14px;border-radius:3px;text-align:center;letter-spacing:1px;margin-top:auto">▶ JUGAR GRATIS</a>
+        </div>
+      </div>
+      <p style="font-family:var(--font-pixel);font-size:.5rem;color:var(--neon-pink);letter-spacing:2px;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:10px">// DESCRIPCIÓN</p>
+      <p style="font-size:.9rem;color:#aaa;line-height:1.7">${game.short_description}</p>
+    `;
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  modalClose.addEventListener('click', closeModal);
+  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
