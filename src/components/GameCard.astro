@@ -1,0 +1,172 @@
+---
+interface Props {
+  id: number;
+  title: string;
+  rating: number;
+  released: string;
+  image: string;
+  genres: string;
+  index: number;
+}
+const { id, title, rating, released, image, genres, index } = Astro.props;
+
+const year = released ? released.slice(0, 4) : '—';
+const score = rating ? rating.toFixed(1) : '?';
+const scoreColor = rating >= 4 ? 'var(--neon-green)' : rating >= 3 ? 'var(--neon-yellow)' : 'var(--neon-pink)';
+---
+
+<article
+  class="game-card"
+  data-id={id}
+  style={`animation-delay: ${index * 60}ms`}
+>
+  <div class="card-img-wrap">
+    <img src={image} alt={title} loading="lazy" />
+    <div class="card-overlay">
+      <span class="ver-mas">▶ VER MÁS</span>
+    </div>
+    <div class="card-score" style={`color: ${scoreColor}; border-color: ${scoreColor}; box-shadow: 0 0 8px ${scoreColor}44`}>
+      {score}
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="card-year">{year}</p>
+    <h3 class="card-title">{title}</h3>
+    <p class="card-genres">{genres}</p>
+  </div>
+  <!-- Esquinas decorativas estilo arcade -->
+  <span class="corner tl"></span>
+  <span class="corner tr"></span>
+  <span class="corner bl"></span>
+  <span class="corner br"></span>
+</article>
+
+<style>
+  .game-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    animation: fadeInUp 0.5s ease both;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .game-card:hover {
+    border-color: var(--neon-cyan);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 0 20px rgba(0,245,255,0.2), 0 12px 40px rgba(0,0,0,0.6);
+  }
+
+  /* Imagen */
+  .card-img-wrap {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: #111;
+  }
+
+  .card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease, filter 0.4s ease;
+    filter: saturate(0.8);
+  }
+
+  .game-card:hover .card-img-wrap img {
+    transform: scale(1.08);
+    filter: saturate(1.2) brightness(0.7);
+  }
+
+  /* Overlay al hover */
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .game-card:hover .card-overlay {
+    opacity: 1;
+  }
+
+  .ver-mas {
+    font-family: var(--font-pixel);
+    font-size: 0.55rem;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px var(--neon-cyan);
+    letter-spacing: 2px;
+    animation: blink 1s step-end infinite;
+  }
+
+  /* Score badge */
+  .card-score {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: var(--font-pixel);
+    font-size: 0.6rem;
+    padding: 4px 7px;
+    border: 1px solid;
+    border-radius: 3px;
+    background: rgba(5,5,15,0.85);
+    line-height: 1;
+  }
+
+  /* Cuerpo */
+  .card-body {
+    padding: 12px 14px 14px;
+  }
+
+  .card-year {
+    font-family: var(--font-pixel);
+    font-size: 0.45rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .card-title {
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    color: var(--text);
+    /* Truncar en 2 líneas */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-genres {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Esquinas decorativas */
+  .corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .game-card:hover .corner { opacity: 1; }
+
+  .corner.tl { top: 3px;    left: 3px;  border-top: 2px solid var(--neon-cyan); border-left:  2px solid var(--neon-cyan); }
+  .corner.tr { top: 3px;    right: 3px; border-top: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
+  .corner.bl { bottom: 3px; left: 3px;  border-bottom: 2px solid var(--neon-cyan); border-left:  2px solid var(--neon-cyan); }
+  .corner.br { bottom: 3px; right: 3px; border-bottom: 2px solid var(--neon-cyan); border-right: 2px solid var(--neon-cyan); }
+</style>
