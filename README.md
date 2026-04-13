@@ -1,3 +1,4 @@
+Benjamin Iucht 5to B TIC Catalogo de VIdeojuegos
 # 🕹️ GAME VAULT — Catálogo de Videojuegos
 
 Catálogo de videojuegos con estética arcade/retro construido con **Astro**. Consume datos reales de la [RAWG API](https://rawg.io/apidocs) — la base de datos de videojuegos más grande del mundo.
